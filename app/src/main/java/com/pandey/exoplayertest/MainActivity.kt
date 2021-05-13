@@ -92,8 +92,14 @@ class MainActivity : AppCompatActivity(){
         player = SimpleExoPlayer.Builder(this).build()
         playerView.player = player
 
+        //as its first item we can add more too
+
         val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
         player?.setMediaItem(mediaItem)
+
+        /** adding new media item similarly we  can list of urls*/
+        val secondMediaItem  = MediaItem.fromUri(getString(R.string.media_url_mp4))
+        player?.addMediaItem(secondMediaItem)
 
 
         /** save info le rha */
