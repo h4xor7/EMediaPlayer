@@ -5,13 +5,15 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.PlayerView
+import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
 
 
-class MainActivity : AppCompatActivity(){
+class MainActivity : AppCompatActivity() {
 
-    private lateinit var  playerView :PlayerView
+    private lateinit var playerView: PlayerView
     private var player: SimpleExoPlayer? = null
     private var playWhenReady = true
     private var currentWindow = 0
@@ -21,7 +23,7 @@ class MainActivity : AppCompatActivity(){
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-         playerView = findViewById(R.id.video_view);
+        playerView = findViewById(R.id.video_view);
     }
 
     override fun onStart() {
@@ -55,7 +57,7 @@ class MainActivity : AppCompatActivity(){
         Play/pause state using getPlayWhenReady.
         Current playback position using getCurrentPosition.
         Current window index using getCurrentWindowIndex
-         taki jb fir se aaye wps to whi se start ho jaha se chhor k gye the
+        taki jb fir se aaye wps to whi se start ho jaha se chhor k gye the
          */
 
 
@@ -77,6 +79,7 @@ class MainActivity : AppCompatActivity(){
         }
 
     }
+
     private fun hideSystemUi() {
 
         playerView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LOW_PROFILE
@@ -89,17 +92,49 @@ class MainActivity : AppCompatActivity(){
     }
 
     private fun initializePlayer() {
-        player = SimpleExoPlayer.Builder(this).build()
+        // player = SimpleExoPlayer.Builder(this).build()
+
+        /**
+         *Adaptive streaming is a technique for streaming media by varying the
+         * quality of the stream based on the available network bandwidth.
+         * This allows the user to experience the best-quality media that their
+         * bandwidth allows.
+         **/
+
+        if (player == null) {
+
+            /**First, create a DefaultTrackSelector, which is responsible for
+             *  choosing tracks in the media item. Then, tell your trackSelector
+             *  to only pick tracks of standard definition or lower—a good way of
+             *  saving your user's data at the expense of quality. Lastly, pass your
+             *  trackSelector to your builder so that it is used when building the
+             *  SimpleExoPlayer instance.*/
+
+            val trackSelector = DefaultTrackSelector(this)
+            trackSelector.setParameters(
+                trackSelector.buildUponParameters().setMaxVideoSizeSd()
+            )
+            player = SimpleExoPlayer.Builder(this)
+                .setTrackSelector(trackSelector)
+                .build()
+        }
+
         playerView.player = player
 
-        //as its first item we can add more too
+        /*   //as its first item we can add more too
 
-        val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
+           val mediaItem = MediaItem.fromUri(getString(R.string.media_url_mp3))
+           player?.setMediaItem(mediaItem)
+           val secondMediaItem  = MediaItem.fromUri(getString(R.string.media_url_mp4))
+           player?.addMediaItem(secondMediaItem)*/
+
+
+        val mediaItem = MediaItem.Builder()
+            .setUri(getString(R.string.media_url_dash))
+            .setMimeType(MimeTypes.APPLICATION_MPD)
+            .build()
+
         player?.setMediaItem(mediaItem)
-
-        /** adding new media item similarly we  can list of urls*/
-        val secondMediaItem  = MediaItem.fromUri(getString(R.string.media_url_mp4))
-        player?.addMediaItem(secondMediaItem)
 
 
         /** save info le rha */
