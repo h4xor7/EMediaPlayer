@@ -1,9 +1,12 @@
 package com.pandey.exoplayertest
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.PlayerView
@@ -17,13 +20,17 @@ class MainActivity : AppCompatActivity() {
     private var player: SimpleExoPlayer? = null
     private var playWhenReady = true
     private var currentWindow = 0
+    private  lateinit var  playbackStateListener :PlaybackStateListener
     private var playbackPosition: Long = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         playerView = findViewById(R.id.video_view);
+
+        playbackStateListener = PlaybackStateListener()
     }
 
     override fun onStart() {
@@ -65,6 +72,7 @@ class MainActivity : AppCompatActivity() {
             playWhenReady = player!!.playWhenReady;
             playbackPosition = player!!.currentPosition;
             currentWindow = player!!.currentWindowIndex;
+            player!!.removeListener(playbackStateListener)
             player!!.release();
             player = null;
         }
@@ -149,10 +157,32 @@ class MainActivity : AppCompatActivity() {
         prepare tells the player to acquire all the resources required for playback.
          */
         player?.playWhenReady = playWhenReady;
-        player?.seekTo(currentWindow, playbackPosition);
+        player?.seekTo(currentWindow, playbackPosition)
+        player?.addListener(playbackStateListener)
         player?.prepare();
 
     }
 
+    inner class PlaybackStateListener : Player.EventListener {
+        override fun onPlaybackStateChanged(playbackState: Int) {
+
+            var stateString:String = when(playbackState){
+                ExoPlayer.STATE_IDLE -> "ExoPlayer.STATE_IDLE      -"
+
+                ExoPlayer.STATE_BUFFERING -> "ExoPlayer.STATE_BUFFERING -"
+
+                ExoPlayer.STATE_READY -> "ExoPlayer.STATE_READY     -"
+                ExoPlayer.STATE_ENDED -> "ExoPlayer.STATE_ENDED     -"
+
+                else -> "UNKNOWN_STATE             -"
+            }
+            Log.d(Companion.TAG, "changed state to: $stateString ")
+        }
+    }
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
 
 }
+
